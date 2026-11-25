@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: one working column. Talent tabs on top, a command bar, then brands sorted by what needs doing next. */
+/* Layout: one working column. Talent tabs on top, one command bar, a pipeline strip that filters, then brands grouped by stage. Secondary actions sit in ⋯ menus. */
 :root{
   --bg:#f1f4f3; --panel:#ffffff; --ink:#14211d; --mute:#5c6b66; --line:#d5dcd9; --soft:#e7ecea;
   --accent:#0b6b5c; --accent-ink:#ffffff; --plum:#7a2e63;
@@ -52,8 +52,12 @@ input,textarea,select{font:14px var(--body);color:var(--ink);background:var(--pa
 .brand{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .bh{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;padding:12px 14px;align-items:center}
 .bn{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;min-width:0}
-.bn b{font:700 18px/1.2 var(--display)} .bn .why{color:var(--mute);font-size:13.5px;flex:1 1 220px;min-width:0}
-.bact{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.bn b{font:700 18px/1.2 var(--display)} .bn .why{color:var(--mute);font-size:13.5px;flex:1 1 220px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bname{all:unset;cursor:pointer;display:inline-flex;gap:7px;align-items:baseline;border-radius:4px} .bname:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.bname .cv{font:500 12px var(--mono);color:var(--mute);display:inline-block;transition:transform .15s} .bname[aria-expanded="true"] .cv{transform:rotate(90deg)}
+.brand.k-reply,.brand.k-send{border-left:4px solid var(--plum)} .brand.k-draft,.brand.k-find{border-left:4px solid var(--accent)} .brand.k-talk{border-left:4px solid var(--good)}
+.sec>h2 button{all:unset;cursor:pointer;font:500 12px var(--mono);letter-spacing:0;text-transform:none;color:var(--accent)}
+.bact{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;align-items:center}
 .fall{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font:500 12px var(--mono);color:var(--mute)}
 .pips{display:flex;gap:3px;align-items:center}
 .pip{width:15px;height:9px;border-radius:2px;background:var(--soft);border:1px solid var(--line)}
@@ -84,7 +88,27 @@ details.prof summary{cursor:pointer;font-weight:600} details.prof textarea{width
 .mail pre{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.5 var(--body);background:var(--soft);border-radius:6px;padding:12px;max-width:72ch}
 .rb{display:flex;flex-wrap:wrap;gap:8px}
 .empty{padding:26px;text-align:center;color:var(--mute);border:1px dashed var(--line);border-radius:10px}
-@media (max-width:640px){ .bh{grid-template-columns:minmax(0,1fr)} .bact{justify-content:flex-start} h1{font-size:25px} }
+/* Pipeline strip: one segment per stage, click to filter the list */
+.pipe{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) auto;gap:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.seg{all:unset;box-sizing:border-box;cursor:pointer;padding:12px 14px;display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--line);border-bottom:3px solid transparent;min-width:0}
+.seg:last-child{border-right:0}
+.seg:hover{background:var(--soft)} .seg:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.seg b{font:700 24px/1 var(--display);color:var(--ink)} .seg span{font:600 12px var(--body);letter-spacing:.04em;text-transform:uppercase;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg em{font:500 11.5px var(--mono);font-style:normal;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg.you b{color:var(--plum)} .seg.pitch b{color:var(--accent)} .seg.wait b{color:var(--warn)} .seg.talk b{color:var(--good)} .seg.bnc b{color:var(--bad)}
+.seg[aria-pressed="true"]{background:var(--soft);border-bottom-color:var(--accent)} .seg.zero b{color:var(--line)}
+.bar .grow{flex:1 1 20px}
+/* Overflow menus: secondary actions live here instead of in rows of buttons */
+details.menu{position:relative} details.menu>summary{list-style:none;cursor:pointer;font:700 15px/1 var(--body);color:var(--mute);border:1px solid var(--line);border-radius:7px;padding:7px 10px;background:var(--panel);display:inline-flex;gap:6px;align-items:center;user-select:none}
+details.menu>summary::-webkit-details-marker{display:none} details.menu>summary:hover{border-color:var(--mute)} details.menu[open]>summary{border-color:var(--accent);color:var(--ink)}
+details.menu>summary .dot{width:7px;height:7px;border-radius:50%;background:var(--warn)}
+.mpop{position:absolute;right:0;top:calc(100% + 6px);z-index:20;min-width:230px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px;box-shadow:0 10px 28px rgba(0,0,0,.14);display:flex;flex-direction:column}
+.mpop button,.mpop a.mi{all:unset;box-sizing:border-box;cursor:pointer;font:500 14px var(--body);color:var(--ink);padding:8px 10px;border-radius:6px;display:flex;gap:8px;align-items:center;justify-content:space-between}
+.mpop button:hover,.mpop a.mi:hover,.mpop button:focus-visible,.mpop a.mi:focus-visible{background:var(--soft)} .mpop button:disabled{opacity:.45;cursor:default;background:none}
+.mpop button.danger{color:var(--bad)} .mpop hr{border:0;border-top:1px solid var(--soft);margin:5px 4px}
+.mpop .row{display:flex;gap:6px;align-items:center;padding:2px 4px} .mpop .row button{flex:1}
+.mpop small{font:500 12px var(--mono);color:var(--mute)}
+@media (max-width:640px){ .bh{grid-template-columns:minmax(0,1fr)} .bact{justify-content:flex-start} h1{font-size:25px} .pipe{grid-template-columns:repeat(3,minmax(0,1fr))} .seg:nth-child(3){border-right:0} .seg:nth-child(-n+3){border-top:0} .seg{border-top:1px solid var(--line)} .bact .mpop{left:0;right:auto} }
 @media (prefers-reduced-motion:no-preference){ .chip.run i{animation:bl 1s infinite alternate} @keyframes bl{to{opacity:.25}} }
 </style>
 
@@ -96,10 +120,11 @@ details.prof summary{cursor:pointer;font-weight:600} details.prof textarea{width
   <div class="tabs" id="tabs" role="tablist"></div>
   <div id="notice"></div>
   <div class="bar" id="bar"></div>
+  <div class="pipe" id="pipe" hidden></div>
   <div id="review"></div>
-  <details class="prof" id="prof"></details>
   <div id="list" class="wrap" style="gap:22px"><div class="empty">Loading your pipeline…</div></div>
-  <div class="sec"><h2>Activity this visit</h2><div class="log" id="log">Nothing yet. Press a button above.</div></div>
+  <details class="prof" id="prof"></details>
+  <details class="prof"><summary>Activity this visit</summary><div class="log" id="log" style="margin-top:10px">Nothing yet. Press a button above.</div></details>
 </div>
 
 <script>
@@ -156,7 +181,7 @@ const chain={};
 function saveBrand(b){
   b.updatedAt=Date.now();
   const body=JSON.parse(JSON.stringify(b));delete body.id;
-  S.brands[b.id]=b;render();
+  S.brands[b.id]=b;fmtCache={};render();
   if(!db)return Promise.resolve();
   chain[b.id]=(chain[b.id]||Promise.resolve()).then(()=>db.doc("brands/"+b.id).set(body)).catch(e=>{
     notice(e.code==="quota_exceeded"?"The app's storage is full. Remove old brands to save new ones.":"Couldn't save "+b.name+" ("+(e.code||"error")+"). Your change shows here but may not be kept.","bad")});
@@ -186,12 +211,74 @@ function heldBy(b){
   }
   return null;
 }
+/* ---------- address check: free, from what your Gmail and past sends already show (no paid checker) ---------- */
+let fmtCache={};
+const domOf=x=>addr(x.email).split("@")[1]||"";
+const guessed=x=>!!x.email&&/^(Likely|Guessed|Corrected|Checked|Test)/.test(x.emailNote||"");
+function fmtStats(dom){ /* how each address format has done at a company, across every creator's brands */
+  if(fmtCache[dom])return fmtCache[dom];
+  const st={},add=(p,k)=>{if(p)(st[p]=st[p]||{ok:0,bad:0})[k]++};
+  for(const b of Object.values(S.brands)){
+    for(const x of b.contacts||[]){
+      if(domOf(x)===dom){const p=patOf(x);
+        if(x.stage==="bounced")add(p,/inactive|full/.test(x.bounceReason||"")?"ok":"bad");
+        else if(x.stage==="replied"||(x.stage==="emailed"&&Date.now()-(x.emailedAt||0)>DAY))add(p,"ok")}
+      (x.tried||[]).forEach(t=>{if(addr(t).split("@")[1]===dom)add(patOf({name:x.name,email:t}),"bad")});
+    }
+    const g=b.formatSeen;if(g&&g.domain===dom&&g.pattern)add(g.pattern,"ok");
+  }
+  return fmtCache[dom]=st;
+}
+function provenPat(dom){const st=fmtStats(dom);return Object.keys(st).filter(p=>st[p].ok&&!st[p].bad).sort((a,b)=>st[b].ok-st[a].ok)[0]||""}
+function testPending(dom){ /* a guessed email at this company drafted, or sent less than a day ago, with no answer yet */
+  let t=null;
+  for(const b of Object.values(S.brands))for(const x of b.contacts||[]){
+    if(domOf(x)!==dom||!guessed(x))continue;
+    const live=x.stage==="drafted"||x.stage==="sending"||(x.stage==="emailed"&&Date.now()-(x.emailedAt||0)<=DAY);
+    if(live&&(!t||(x.emailedAt||Infinity)>(t.emailedAt||Infinity)))t=x;
+  }
+  return t;
+}
+function nextTestPat(dom,pref){const st=fmtStats(dom);return [pref].concat(PATS).find(p=>p&&!(st[p]&&st[p].bad))||""}
+/* before drafting: look in Gmail for real people at the company to learn its format, then fix guesses to match */
+async function checkAddresses(b){
+  const open=x=>(!x.stage||x.stage==="found")&&!x.skip&&guessed(x);
+  const doms=[...new Set((b.contacts||[]).filter(open).map(domOf).filter(d=>d&&!FREE.test(d)))];let ch=false;
+  for(const d of doms){
+    const g=b.formatSeen;
+    if(!provenPat(d)&&!(g&&g.domain===d&&Date.now()-(g.checkedAt||0)<7*DAY)){
+      try{
+        const r=objOf(await call(GMAIL,"search_threads",{query:"from:"+d+" -from:me newer_than:730d",pageSize:25})),cnt={};
+        for(const th of r.threads||[])for(const m of th.messages||[]){
+          const a=addr(m.sender);if(!a||a.split("@")[1]!==d||AUTO.test(a))continue;
+          const nm=String(m.sender||"").replace(/<[^>]*>/,"").replace(/["']/g,"").trim();if(!nm||nm.includes("@"))continue;
+          const pt=patOf({name:nm,email:a});if(pt)cnt[pt]=(cnt[pt]||0)+1;
+        }
+        b.formatSeen={domain:d,pattern:Object.keys(cnt).sort((x,y)=>cnt[y]-cnt[x])[0]||"",checkedAt:Date.now()};fmtCache={};ch=true;
+      }catch(e){}
+    }
+    const pp=provenPat(d);if(!pp)continue;
+    for(const x of b.contacts)if(open(x)&&domOf(x)===d){
+      const ne=mkEmail(x.name,d,pp),old=addr(x.email);
+      if(ne&&ne!==old&&!(x.tried||[]).includes(ne)){x.tried=(x.tried||[]).concat(old);x.email=ne;x.emailNote="Checked: changed to the "+pp+" format that works at "+d+" (was "+old+")";ch=true}
+      else if(ne===old&&!/^Checked/.test(x.emailNote||"")){x.emailNote="Checked: matches the "+pp+" format that works at "+d;ch=true}
+    }
+  }
+  if(ch)await saveBrand(b);
+}
 function plan(b){
   const c=cfg(),cs=b.contacts||[];
   const co=coNeeds(b),coT=coAll(b).filter(m=>!co.includes(m));let held=null;
   const replied=cs.filter(needs),talk=cs.filter(x=>x.stage==="replied"&&!needs(x)),drafted=cs.filter(x=>x.stage==="drafted"||x.stage==="sending");
   const sent=cs.filter(x=>["emailed","replied","bounced"].includes(x.stage));
-  const queue=cs.filter(x=>(!x.stage||x.stage==="found")&&x.email&&!x.skip);
+  let queue=cs.filter(x=>(!x.stage||x.stage==="found")&&x.email&&!x.skip);
+  /* at a company where no guessed format has got through yet, only one guessed email goes out first */
+  let test=null;
+  if(queue.length&&!b.formatTestSkip){
+    const go=[],wait=[];queue.forEach(x=>(!guessed(x)||provenPat(domOf(x))?go:wait).push(x));
+    if(wait.length){const pend=testPending(domOf(wait[0]));if(pend)test={wait:pend};else{test={first:wait[0]};go.push(wait[0])}}
+    queue=go;
+  }
   const last=Math.max(0,...sent.map(x=>x.emailedAt||0)); const due=Math.max(last?last+c.waitDays*DAY:0,b.snoozeUntil||0);
   let kind,label;
   const NO=/not interested|no interest|not a fit|pass (on|at)|not (currently )?(looking|working with|taking)|no budget|unsubscribe|remove me/i;
@@ -202,11 +289,13 @@ function plan(b){
   else if((queue.length||drafted.length)&&(held=heldBy(b))){kind="hold";label="On hold: "+held.name+" already responded about "+((S.talents[held.talentId]||{}).name||"another creator")}
   else if(!cs.length){kind="find";label="Needs contacts"}
   else if(drafted.length){kind="send";label=drafted.length+" draft"+(drafted.length>1?"s":"")+" waiting in Gmail"}
+  else if(!queue.length&&test&&test.wait){const w=test.wait,f=w.name.split(" ")[0];kind="wait";
+    label=w.stage==="emailed"?"Testing the email format: waiting until "+fmtD((w.emailedAt||0)+DAY)+" to see if "+f+"'s email bounces":"Testing the email format: send the test email to "+f+" first"}
   else if(!queue.length){kind="done";label=sent.length?"Everyone contacted":"No usable emails yet"}
   else if(Date.now()<due){kind="wait";label="Next pair due "+fmtD(due)}
-  else{kind="draft";label=sent.length?"Next pair is due":"Ready for first pair"}
+  else{kind="draft";label=test&&test.first&&queue.length===1&&queue[0]===test.first?"New company: one test email first, to check the address format":sent.length?"Next pair is due":"Ready for first pair"}
   if(["reply","talk","hold"].includes(kind)&&drafted.length)label+=" · do not send the "+drafted.length+" unsent draft"+(drafted.length>1?"s":"")+" in Gmail";
-  return {kind,label,queue,sent,drafted,replied,talk,co,held,due,last};
+  return {kind,label,queue,sent,drafted,replied,talk,co,held,due,last,test};
 }
 const ORDER=["reply","send","draft","find","talk","hold","wait","done","closed"];
 const TITLES={closed:"Closed: no more outreach",hold:"On hold: the company already responded for another creator",talk:"Success: conversations under way",reply:"Replies to handle",send:"Drafts waiting for you to send",draft:"Due for the next pair",find:"Need contacts",wait:"Waiting out the gap",done:"Sequence finished"};
@@ -214,29 +303,66 @@ const TITLES={closed:"Closed: no more outreach",hold:"On hold: the company alrea
 /* ---------- render ---------- */
 function renderChips(){$("chips").innerHTML=Object.values(S.chips).map(c=>`<span class="chip ${c.s}"><i></i>${esc(c.t)}</span>`).join("")}
 function renderNotice(){const n=S.notice;$("notice").innerHTML=n?`<div class="msg ${n.kind}"><span>${esc(n.text)}</span><button class="sm ghost" data-act="dismiss">Dismiss</button></div>`:""}
+/* the pipeline: nine plan kinds folded into five stages the eye can scan */
+const LANES=[
+  {k:"you",t:"Needs you",kinds:["reply","send"]},
+  {k:"pitch",t:"To pitch",kinds:["draft","find"]},
+  {k:"wait",t:"Waiting",kinds:["wait","hold"]},
+  {k:"talk",t:"Talking",kinds:["talk"]},
+  {k:"done",t:"Finished",kinds:["done","closed"]}];
+const laneOf=kind=>(LANES.find(l=>l.kinds.includes(kind))||LANES[4]).k;
+const bouncedOf=b=>(b.contacts||[]).filter(x=>x.stage==="bounced");
+/* ⋯ menu: a <details> that stays open across re-renders until you pick something or click away */
+function menuHTML(id,items,dot){
+  const body=items.filter(Boolean).join("");if(!body)return "";
+  return `<details class="menu" data-menu="${esc(id)}"><summary aria-label="More actions"${dot?` title="${esc(dot)}"`:""}>${dot?'<i class="dot"></i>':""}⋯</summary><div class="mpop">${body}</div></details>`;
+}
+const mi=(act,label,extra)=>`<button type="button" data-act="${act}" ${extra||""}>${label}</button>`;
+const ml=(href,label)=>`<a class="mi" href="${esc(href)}" target="_blank" rel="noopener">${label}<small>↗</small></a>`;
+function restoreMenu(){if(!S.menu)return;const m=document.querySelector(`details.menu[data-menu="${CSS.escape(S.menu)}"]`);if(m)m.open=true;else S.menu=null}
 function render(){
+  fmtCache={};
   const ts=Object.values(S.talents).sort((a,b)=>(a.order||0)-(b.order||0));
   if(!S.cur&&ts.length)S.cur=ts[0].id;
   $("tabs").innerHTML=ts.map(t=>{const n=brandsOf(t.id).filter(b=>["reply","send","draft"].includes(plan(b).kind)).length;
     return `<button class="tab" role="tab" aria-selected="${t.id===S.cur}" data-act="tab" data-id="${esc(t.id)}">${esc(t.name)}<small>${n?n+" to do":""}</small></button>`}).join("");
   const t=S.talents[S.cur];
-  if(!t){$("bar").innerHTML="";$("prof").hidden=true;
+  if(!t){$("bar").innerHTML="";$("pipe").hidden=true;$("prof").hidden=true;
     $("list").innerHTML=`<div class="empty">${S.loaded?"No creators set up yet. Ask Claude to add one.":"Loading your pipeline…"}</div>`;return}
-  const c=cfg(),bs=brandsOf(t.id),due=bs.filter(b=>plan(b).kind==="draft"),nf=bs.filter(b=>plan(b).kind==="find");
+  const c=cfg(),bs=brandsOf(t.id),plans=new Map(bs.map(b=>[b.id,plan(b)]));
+  const due=bs.filter(b=>plans.get(b.id).kind==="draft"),nf=bs.filter(b=>plans.get(b.id).kind==="find");
   const B=k=>S.busy[k]?"disabled":"";
   const oldN=Object.values(S.brands).reduce((n,b)=>n+(b.contacts||[]).filter(x=>x.stage==="drafted"&&!x.refreshedAt).length,0);
-  const toSend=bs.reduce((n,b)=>n+(plan(b).kind==="send"?(b.contacts||[]).filter(x=>x.stage==="drafted").length:0),0);
-  $("bar").innerHTML=`
-    <button class="pri" data-act="gen" ${B("gen")}>${S.busy.gen?"Thinking…":"Generate new brands"}</button>
-    <input type="number" id="brandCount" min="1" max="10" value="${c.brandCount}" aria-label="How many brands">
-    <button data-act="findAll" ${nf.length?"":"disabled"} ${B("findAll")}>${S.busy.findAll?"Finding "+S.busy.findAll+"…":"Find contacts ("+nf.length+")"}</button>
-    <button data-act="draftAll" ${due.length?"":"disabled"} ${B("draftAll")}>${S.busy.draftAll?"Drafting "+S.busy.draftAll+"…":"Draft emails due ("+due.length+")"}</button>
-    <span class="sp"></span>
+  const toSend=bs.reduce((n,b)=>n+(plans.get(b.id).kind==="send"?(b.contacts||[]).filter(x=>x.stage==="drafted").length:0),0);
+  /* one primary button: the next bulk step that has work in it; the rest go in the ⋯ menu */
+  const steps={
+    review:`<button class="pri" data-act="review" ${toSend?"":"disabled"} ${B("review")}>${S.busy.review?esc(S.busy.review):"Review and send ("+toSend+")"}</button>`,
+    draftAll:`<button class="pri" data-act="draftAll" ${due.length?"":"disabled"} ${B("draftAll")}>${S.busy.draftAll?"Drafting "+S.busy.draftAll+"…":"Draft emails due ("+due.length+")"}</button>`,
+    findAll:`<button class="pri" data-act="findAll" ${nf.length?"":"disabled"} ${B("findAll")}>${S.busy.findAll?"Finding "+S.busy.findAll+"…":"Find contacts ("+nf.length+")"}</button>`,
+    gen:`<button class="pri" data-act="gen" ${B("gen")}>${S.busy.gen?"Thinking…":"Generate new brands"}</button>`};
+  const first=S.busy.review||toSend?"review":S.busy.draftAll||due.length?"draftAll":S.busy.findAll||nf.length?"findAll":"gen";
+  const sigBtn=S.sig&&S.sig.logo&&oldN?mi("refresh",S.busy.sig?"Refreshing "+esc(S.busy.sig)+"…":S.sigUrl?"Test draft looks right: refresh the other "+oldN:"Refresh old drafts ("+oldN+")",B("sig"))+(S.sigUrl&&!S.busy.sig?ml(S.sigUrl,"Open the test draft"):""):"";
+  const barMenu=menuHTML("bar",[
+    first!=="review"&&toSend?mi("review","Review and send ("+toSend+")",B("review")):"",
+    first!=="draftAll"?mi("draftAll",S.busy.draftAll?"Drafting "+S.busy.draftAll+"…":"Draft emails due ("+due.length+")",(due.length?"":"disabled ")+B("draftAll")):"",
+    first!=="findAll"?mi("findAll",S.busy.findAll?"Finding "+S.busy.findAll+"…":"Find contacts ("+nf.length+")",(nf.length?"":"disabled ")+B("findAll")):"",
+    first!=="gen"?`<div class="row">${mi("gen",S.busy.gen?"Thinking…":"Generate new brands",B("gen"))}<input type="number" id="brandCount" min="1" max="10" value="${c.brandCount}" aria-label="How many brands" style="width:58px"></div>`:"",
+    "<hr>",
+    mi("sync",S.busy.sync?"Checking Gmail…":"Check Gmail now",B("sync")),
+    sigBtn]);
+  $("bar").innerHTML=`${steps[first]}${first==="gen"?`<input type="number" id="brandCount" min="1" max="10" value="${c.brandCount}" aria-label="How many brands">`:""}
+    <span class="grow"></span>
     <input type="text" id="addName" placeholder="Add a brand by name, e.g. Celsius" aria-label="Brand name">
     <button data-act="add">Add</button>
-    <button data-act="sync" ${B("sync")}>${S.busy.sync?"Checking…":"Check Gmail"}</button>
-    ${S.sig&&S.sig.logo&&oldN?`<button data-act="refresh" ${B("sig")}>${S.busy.sig?"Refreshing "+S.busy.sig+"…":S.sigUrl?"Test draft looks right: refresh the other "+oldN:"Refresh old drafts ("+oldN+")"}</button>${S.sigUrl&&!S.busy.sig?`<a href="${esc(S.sigUrl)}" target="_blank" rel="noopener">Open the test draft</a>`:""}`:""}
-    <button class="pri" data-act="review" ${toSend?"":"disabled"} ${B("review")}>${S.busy.review?esc(S.busy.review):"Review and send ("+toSend+")"}</button>`;
+    ${barMenu}`;
+  /* stage strip */
+  const counts={};LANES.forEach(l=>counts[l.k]=0);bs.forEach(b=>counts[laneOf(plans.get(b.id).kind)]++);
+  const bn=bs.reduce((n,b)=>n+bouncedOf(b).length,0);
+  const hint={you:toSend?toSend+" to send":"",pitch:due.length?due.length+" due":nf.length?nf.length+" need contacts":"",wait:"",talk:"",done:""};
+  if(S.lane&&S.lane!=="bnc"&&!LANES.some(l=>l.k===S.lane))S.lane=null;
+  $("pipe").hidden=!bs.length;
+  $("pipe").innerHTML=LANES.map(l=>`<button class="seg ${l.k}${counts[l.k]?"":" zero"}" data-act="lane" data-lane="${l.k}" aria-pressed="${S.lane===l.k}"><b>${counts[l.k]}</b><span>${l.t}</span><em>${esc(hint[l.k]||" ")}</em></button>`).join("")
+    +`<button class="seg bnc${bn?"":" zero"}" data-act="lane" data-lane="bnc" aria-pressed="${S.lane==="bnc"}" title="Contacts whose email bounced"><b>${bn}</b><span>Bounced</span><em>${bn?"fix or skip":" "}</em></button>`;
   $("review").innerHTML=reviewHTML();
   const pf=$("prof"),wasOpen=pf.open;pf.hidden=false;
   pf.innerHTML=`<summary>${esc(t.name)}: what the emails say about them, and the pace</summary>
@@ -245,37 +371,60 @@ function render(){
     <label class="note">Emails per round <input type="number" id="batch" min="1" max="5" value="${c.batch}" style="width:56px"></label>
     <label class="note" style="margin-left:14px">Days between rounds <input type="number" id="waitDays" min="1" max="14" value="${c.waitDays}" style="width:56px"></label>`;
   pf.open=wasOpen;
-  if(!bs.length){$("list").innerHTML=`<div class="empty">No brands for ${esc(t.name)} yet. Press “Generate new brands”, or add one by name.</div>`;return}
-  const groups={};bs.forEach(b=>{const p=plan(b);(groups[p.kind]=groups[p.kind]||[]).push([b,p])});
-  $("list").innerHTML=ORDER.filter(k=>groups[k]).map(k=>`<section class="sec"><h2>${TITLES[k]} <span>${groups[k].length}</span></h2>${
-    groups[k].sort((a,b)=>(b[0].updatedAt||0)-(a[0].updatedAt||0)).map(([b,p])=>brandHTML(b,p)).join("")}</section>`).join("");
+  if(!bs.length){$("list").innerHTML=`<div class="empty">No brands for ${esc(t.name)} yet. Press “Generate new brands”, or add one by name.</div>`;restoreMenu();return}
+  const sortB=(x,y)=>ORDER.indexOf(x[1].kind)-ORDER.indexOf(y[1].kind)||(y[0].updatedAt||0)-(x[0].updatedAt||0);
+  let html;
+  if(S.lane==="bnc"){
+    const rows=bs.filter(b=>bouncedOf(b).length).map(b=>[b,plans.get(b.id)]).sort(sortB);
+    html=`<section class="sec"><h2>Brands with bounced emails <span>${rows.length}</span> <button data-act="lane" data-lane="">Show all</button></h2>${rows.map(([b,p])=>brandHTML(b,p)).join("")||'<div class="empty">No bounces. Nice.</div>'}</section>`;
+  }else{
+    html=LANES.filter(l=>!S.lane||S.lane===l.k).map(l=>{
+      const rows=bs.map(b=>[b,plans.get(b.id)]).filter(([,p])=>l.kinds.includes(p.kind)).sort(sortB);
+      if(!rows.length)return S.lane?`<section class="sec"><h2>${l.t} <span>0</span> <button data-act="lane" data-lane="">Show all</button></h2><div class="empty">Nothing here right now.</div></section>`:"";
+      const fold=l.k==="done"&&!S.lane&&!S.showDone;
+      return `<section class="sec"><h2>${l.t} <span>${rows.length}</span>${S.lane?` <button data-act="lane" data-lane="">Show all</button>`:l.k==="done"?` <button data-act="showDone">${fold?"Show":"Hide"}</button>`:""}</h2>${fold?"":rows.map(([b,p])=>brandHTML(b,p)).join("")}</section>`}).join("");
+  }
+  $("list").innerHTML=html;
+  restoreMenu();
 }
 function brandHTML(b,p){
-  const cs=b.contacts||[],bz=S.busy[b.id],c=cfg();
+  const cs=b.contacts||[],bz=S.busy[b.id],c=cfg(),first=x=>esc(x.name.split(" ")[0]);
   const pips=cs.map((x,i)=>`${i&&i%c.batch===0?'<span class="gap"></span>':""}<span class="pip ${esc(x.stage||"")}" title="${esc(x.name)}: ${esc(x.stage||"not emailed")}"></span>`).join("");
-  let pri="";
+  const replied=cs.map((x,i)=>[x,i]).filter(([x])=>needs(x));
+  /* one primary action per brand; everything else goes in its ⋯ menu */
+  let pri="";const more=[];
   if(bz)pri=`<button class="pri" disabled>${esc(bz)}</button>`;
-  else if(p.kind==="reply")pri=cs.map((x,i)=>needs(x)?`${x.replyUrl?`<a href="${esc(x.replyUrl)}" target="_blank" rel="noopener"><button class="pri" type="button">Open ${esc(x.name.split(" ")[0])}'s email</button></a>`:""}<button data-act="success" data-id="${b.id}" data-i="${i}">Mark success</button><button data-act="ignore" data-id="${b.id}" data-i="${i}">Ignore reply from ${esc(x.name.split(" ")[0])}</button>`:"").join("");
+  else if(p.kind==="reply"){
+    const [x0]=replied[0]||[];
+    if(x0&&x0.replyUrl)pri=`<a href="${esc(x0.replyUrl)}" target="_blank" rel="noopener"><button class="pri" type="button">Open ${first(x0)}'s email</button></a>`;
+    replied.forEach(([x,i],k)=>{if(k&&x.replyUrl)more.push(ml(x.replyUrl,"Open "+first(x)+"'s email"));
+      more.push(mi("success","Mark success"+(replied.length>1?": "+first(x):""),`data-id="${b.id}" data-i="${i}"`),mi("ignore","Ignore reply from "+first(x),`data-id="${b.id}" data-i="${i}"`))});
+    more.push(mi("close","Not interested: close brand",`data-id="${b.id}" class="danger"`));
+  }
   else if(p.kind==="find")pri=`<button class="pri" data-act="find" data-id="${b.id}">Find contacts</button>`;
   else if(p.kind==="draft")pri=`<button class="pri" data-act="draft" data-id="${b.id}">Draft ${Math.min(c.batch,p.queue.length)} email${Math.min(c.batch,p.queue.length)>1?"s":""}</button>`;
-  else if(p.kind==="wait")pri=`<button data-act="draft" data-id="${b.id}">Draft early</button>`;
   else if(p.kind==="send")pri=`<a href="https://mail.google.com/mail/u/0/#drafts" target="_blank" rel="noopener"><button class="pri" type="button">Open Gmail drafts</button></a>`;
-  if(!bz&&p.kind==="closed")pri=`<button data-act="reopen" data-id="${b.id}">Reopen</button>`;
-  if(!bz&&p.kind==="reply")pri+=`<button data-act="close" data-id="${b.id}">Not interested: close brand</button>`;
-  if(!bz&&p.kind==="hold")pri=`<button data-act="unhold" data-id="${b.id}">Draft anyway</button>`;
-  if(!bz&&p.co.length)pri+=`${p.co[0].url?`<a href="${esc(p.co[0].url)}" target="_blank" rel="noopener"><button class="pri" type="button">Open the email</button></a>`:""}<button data-act="coSuccess" data-id="${b.id}">Mark success</button><button data-act="coIgnore" data-id="${b.id}">Ignore this email</button>`;
+  else if(p.kind==="wait"&&p.queue.length)more.push(mi("draft","Draft early",`data-id="${b.id}"`));
+  else if(p.kind==="hold")more.push(mi("unhold","Draft anyway",`data-id="${b.id}"`));
+  if(!bz&&p.test&&(p.test.wait||p.test.first))more.push(mi("skipTest","Skip the format test for this brand",`data-id="${b.id}"`));
+  else if(!bz&&b.formatTestSkip&&p.queue.length)more.push(mi("useTest","Use the format test again",`data-id="${b.id}"`));
+  else if(p.kind==="closed")more.push(mi("reopen","Reopen",`data-id="${b.id}"`));
+  if(!bz&&p.co.length){
+    if(p.co[0].url){const btn=`<a href="${esc(p.co[0].url)}" target="_blank" rel="noopener"><button class="pri" type="button">Open the email</button></a>`;if(pri)more.unshift(ml(p.co[0].url,"Open the email from "+esc(p.co[0].from)));else pri=btn}
+    more.push(mi("coSuccess","Mark that email a success",`data-id="${b.id}"`),mi("coIgnore","Ignore this email",`data-id="${b.id}"`));
+  }
   const dirty=!b.mondayAt||(b.updatedAt||0)>b.mondayAt+1500;
-  const open=S.open.has(b.id);
-  return `<article class="brand"><div class="bh">
-    <div class="bn"><b>${esc(b.name)}</b><span class="state ${p.kind}">${esc(p.label)}</span><span class="why">${esc(b.why||b.notes||"")}</span></div>
-    <div class="bact">${pri}
-      ${cs.length&&p.kind!=="find"&&p.kind!=="closed"?`<button class="sm" data-act="find" data-id="${b.id}" ${bz?"disabled":""}>More contacts</button>`:""}
-      <button class="sm" data-act="monday" data-id="${b.id}" ${bz||!dirty?"disabled":""}>${dirty?"Update monday":"monday up to date"}</button>
-      <button class="sm" data-act="toggle" data-id="${b.id}">${open?"Hide":"Contacts ("+cs.length+")"}</button>
-      ${p.kind!=="closed"&&p.kind!=="reply"?`<button class="sm ghost" data-act="close" data-id="${b.id}">Close brand</button>`:""}
-      ${!p.sent.length&&!p.drafted.length?`<button class="sm ghost" data-act="remove" data-id="${b.id}">Remove</button>`:""}
-    </div>
-    ${cs.length?`<div class="fall"><span class="pips">${pips}</span><span>${p.sent.length} of ${cs.length} emailed${p.last?" · last "+fmtD(p.last):""}${b.inbound&&b.inbound.length?" · "+b.inbound.length+" other email"+(b.inbound.length>1?"s":"")+" from this company":""}</span></div>`:""}
+  const open=S.open.has(b.id),bounced=bouncedOf(b).length;
+  if(more.length)more.push("<hr>");
+  more.push(
+    cs.length&&p.kind!=="find"&&p.kind!=="closed"?mi("find","Find more contacts",`data-id="${b.id}" ${bz?"disabled":""}`):"",
+    mi("monday",dirty?"Update monday.com":"monday.com is up to date",`data-id="${b.id}" ${bz||!dirty?"disabled":""}`),
+    p.kind!=="closed"&&p.kind!=="reply"?mi("close","Close brand",`data-id="${b.id}" class="danger"`):"",
+    !p.sent.length&&!p.drafted.length?mi("remove","Remove brand",`data-id="${b.id}" class="danger"`):"");
+  return `<article class="brand k-${p.kind}"><div class="bh">
+    <div class="bn"><button class="bname" data-act="toggle" data-id="${b.id}" aria-expanded="${open}" title="${open?"Hide":"Show"} contacts"><span class="cv">▸</span><b>${esc(b.name)}</b></button><span class="state ${p.kind}">${esc(p.label)}</span></div>
+    <div class="bact">${pri}${menuHTML("b:"+b.id,more,dirty&&!bz?"monday.com needs an update":"")}</div>
+    <div class="fall">${cs.length?`<span class="pips">${pips}</span><span>${p.sent.length} of ${cs.length} emailed${p.last?" · last "+fmtD(p.last):""}${bounced?" · "+bounced+" bounced":""}${b.inbound&&b.inbound.length?" · "+b.inbound.length+" other email"+(b.inbound.length>1?"s":"")+" from this company":""}</span>`:"<span>No contacts yet</span>"}${b.why||b.notes?`<span class="why" style="font-family:var(--body);flex:1 1 200px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(b.why||b.notes)}">${esc(b.why||b.notes)}</span>`:""}</div>
   </div>${open?contactsHTML(b):""}</article>`;
 }
 function contactsHTML(b){
@@ -545,7 +694,13 @@ async function draftBrand(b){
   const set=m=>{S.busy[b.id]=m;render()};
   if(Date.now()-lastSyncOk>60000){set("Checking for replies…");await syncGmail(false)}
   if(Date.now()-lastSyncOk>60000){delete S.busy[b.id];notice("Couldn't check Gmail for replies just now, so nothing was drafted for "+b.name+". Try again in a moment.","bad");return render()}
+  set("Checking addresses…");await checkAddresses(b);fmtCache={};
   const p=plan(b),who=p.queue.slice(0,c.batch);
+  if(p.test&&p.test.first&&who.includes(p.test.first)){
+    const x=p.test.first,d=domOf(x),pt=nextTestPat(d,patOf(x)),ne=pt&&mkEmail(x.name,d,pt),old=addr(x.email);
+    if(ne&&ne!==old){x.tried=(x.tried||[]).concat(old);x.email=ne}
+    x.emailNote="Test email ("+(pt||patOf(x)||"guessed")+" format): the other guesses at "+d+" wait a day to see if this one bounces";await saveBrand(b);
+  }
   if(!["draft","wait"].includes(p.kind)||!who.length){delete S.busy[b.id];notice(b.name+" was not drafted. "+p.label+".");return render()}
   set("Writing…");
   try{
@@ -723,10 +878,19 @@ async function runAll(key,kind,fn){
   else notice("Done: went through all "+list.length+" brands. Any that had a reply were skipped.","good");
   log((key==="draftAll"?"Draft all":"Find all")+": "+done+" of "+list.length+" brands done");render();
 }
+/* ⋯ menus: one open at a time, closed by a pick, a click elsewhere or Escape */
+function closeMenus(except){document.querySelectorAll("details.menu[open]").forEach(m=>{if(m!==except)m.open=false});if(!except)S.menu=null}
+document.addEventListener("toggle",e=>{const m=e.target;if(!m.matches||!m.matches("details.menu"))return;
+  if(m.open){S.menu=m.dataset.menu;closeMenus(m)}else if(S.menu===m.dataset.menu)S.menu=null},true);
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&S.menu)closeMenus()});
+document.addEventListener("click",e=>{if(S.menu&&!e.target.closest("details.menu"))closeMenus()});
 document.addEventListener("click",e=>{
   const el=e.target.closest("[data-act]");if(!el||el.tagName==="INPUT")return;
+  if(el.closest(".mpop"))closeMenus();
   const a=el.dataset.act,b=S.brands[el.dataset.id],i=Number(el.dataset.i);
-  if(a==="tab"){S.cur=el.dataset.id;render()}
+  if(a==="tab"){S.cur=el.dataset.id;S.lane=null;render()}
+  else if(a==="lane"){const k=el.dataset.lane||null;S.lane=S.lane===k?null:k;render()}
+  else if(a==="showDone"){S.showDone=!S.showDone;render()}
   else if(a==="dismiss")notice(null);
   else if(a==="gen")genBrands();
   else if(a==="add")addBrand();
@@ -750,6 +914,8 @@ document.addEventListener("click",e=>{
   else if(a==="coIgnore"){b.inboundIgnoreAt=Date.now();saveBrand(b);log("Ignored the extra email from "+b.name)}
   else if(a==="close"){const no=(b.contacts||[]).find(x=>x.stage==="replied");b.closed=true;b.closedAt=Date.now();b.closedReason=no?"not interested ("+no.name+")":"stopped by you";saveBrand(b);log("Closed "+b.name)}
   else if(a==="reopen"){delete b.closed;delete b.closedAt;delete b.closedReason;saveBrand(b);log("Reopened "+b.name)}
+  else if(a==="skipTest"){b.formatTestSkip=true;saveBrand(b);log("Skipped the format test for "+b.name)}
+  else if(a==="useTest"){delete b.formatTestSkip;saveBrand(b);log("Format test back on for "+b.name)}
   else if(a==="unhold"){b.holdOverrideAt=Date.now();saveBrand(b);log("Took "+b.name+" off hold")}
   else if(a==="success"){const x=b.contacts[i];if(x){x.successAt=Date.now();saveBrand(b);log("Marked "+x.name+" ("+b.name+") as a success")}}
   else if(a==="ignore"){const x=b.contacts[i];if(x){x.seen=(x.seen||[]).filter(k=>k[0]==="m");delete x.successAt;x.ignoreReplyAt=Math.max(x.replyAt||0,Date.now());x.stage=x.emailedAt?"emailed":"found";delete x.replyAt;delete x.replySnippet;delete x.replyUrl;saveBrand(b);log("Ignored the reply from "+x.name+" ("+b.name+")")}}
