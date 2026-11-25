@@ -8,6 +8,7 @@ A single-page app for brand partnership outreach on behalf of creators. It runs 
 - **Find contacts** on LinkedIn (through the Claude desktop app's browser pane) and guess each person's email from the company's address format.
 - **Draft emails** two at a time per brand (the waterfall: 2 emails, then a 3 to 4 day gap, then 2 more), saved as Gmail drafts with the logo signature and a link to the creator's TikTok.
 - **Review and send**: shows the batch, sends only after you press Approve, with per-brand and daily limits.
+- **Checks addresses before drafting** for free: it looks in Gmail for real people at the company to learn its email format, and uses formats that already got through at that company. At a company where no guessed format has worked yet, it sends one test email first and waits a day to see if it bounces before guessing the rest.
 - **Watches Gmail** for sends, replies, bounces and emails from anyone else at the company, and pauses or closes a brand accordingly.
 - **Update monday.com** rows and contact subitems.
 
